@@ -214,5 +214,5 @@ if ($Process.ExitCode -eq 0) {
     Write-Host "Packaging failed with exit code $($Process.ExitCode). Check the logs for details." -ForegroundColor Red
 }
 
-# Clean up instructions file
-#Remove-Item -Path $InstructionsFilePath -Force
+#Clean up instructions file
+#Remove-Item -Path $WorkingDir -Force
