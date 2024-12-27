@@ -1,4 +1,4 @@
-﻿# Intune Win32 Shortcut Packaging Script
+# Intune Win32 Shortcut Packaging Script
 
 # Function to display a GUI popup for user input
 function Get-UserInput-GUI {
@@ -107,16 +107,12 @@ if (-not (Test-Path $IntuneWinAppUtilPath)) {
 
 # Prepare working directories
 $WorkingDir = Join-Path -Path $env:TEMP -ChildPath "IntuneWinPackage\$ShortcutName"
-$InstallScriptDir = Join-Path -Path $WorkingDir -ChildPath 'Scripts'
-$ShortcutDestDir = Join-Path -Path $WorkingDir -ChildPath 'Install'
 
 # Create necessary folders
 New-Item -ItemType Directory -Path $WorkingDir -Force | Out-Null
-New-Item -ItemType Directory -Path $InstallScriptDir -Force | Out-Null
-New-Item -ItemType Directory -Path $ShortcutDestDir -Force | Out-Null
 
 # Generate shortcut (.lnk) file
-$ShortcutPath = Join-Path -Path $ShortcutDestDir -ChildPath "$ShortcutName.lnk"
+$ShortcutPath = Join-Path -Path $WorkingDir -ChildPath "$ShortcutName.lnk"
 $WScriptShell = New-Object -ComObject WScript.Shell
 $Shortcut = $WScriptShell.CreateShortcut($ShortcutPath)
 if($ShortcutTargetType -eq 'msapp') {
@@ -130,18 +126,18 @@ $Shortcut.IconLocation = "%ALLUSERSPROFILE%\ShortcutsIcons\$ShortcutName.ico"
 $Shortcut.Save()
 
 #Copy the shortcut icon to install folder
-Copy-Item -Path "$ShortcutIcon" -Destination "$ShortcutDestDir\$ShortcutName.ico" -Force
+Copy-Item -Path "$ShortcutIcon" -Destination "$WorkingDir\$ShortcutName.ico" -Force
 
 # Generate Files
 $PublicDesktopFolder = "C:\Users\Public\Desktop"
 $ShortcutIconPath = "C:\ProgramData\ShortcutsIcons"
 $ShortcutVersionPath = "C:\ProgramData\ShortcutsVersion\$ShortcutName"
 
-$InstallScriptPath = Join-Path -Path $InstallScriptDir -ChildPath "Install_$ShortcutName.ps1"
-$UninstallScriptPath = Join-Path -Path $InstallScriptDir -ChildPath "Uninstall_$ShortcutName.ps1"
+$InstallScriptPath = Join-Path -Path $WorkingDir -ChildPath "Install_$ShortcutName.ps1"
+$UninstallScriptPath = Join-Path -Path $WorkingDir -ChildPath "Uninstall_$ShortcutName.ps1"
 
 $DetectionScriptPath = Join-Path -Path $OutputFolder -ChildPath "Detection_$ShortcutName.ps1"
-$ShortcutVersionInstallPath = Join-Path -Path $ShortcutDestDir -ChildPath "$ShortcutVersion.ini"
+$ShortcutVersionInstallPath = Join-Path -Path $WorkingDir -ChildPath "$ShortcutVersion.ini"
 $InstructionsFilePath = Join-Path -Path $OutputFolder -ChildPath "IntuneInstructions_$ShortcutName.txt"
 
 
@@ -156,13 +152,13 @@ $ShortcutVersion
 @"
 # InstallShortcut.ps1
 # Copy shortcut to Public Desktop folder
-Copy-Item -Path "..\Install\$ShortcutName.lnk" -Destination "$PublicDesktopFolder" -Force
+Copy-Item -Path ".\$ShortcutName.lnk" -Destination "$PublicDesktopFolder" -Force
 
 if (-not (Test-Path "$ShortcutIconPath")){New-Item -ItemType Directory -Path "$ShortcutIconPath" -Force | Out-Null}
-Copy-Item -Path "..\Install\$ShortcutName.ico" -Destination "$ShortcutIconPath" -Force
+Copy-Item -Path ".\$ShortcutName.ico" -Destination "$ShortcutIconPath" -Force
 
 if (-not (Test-Path "$ShortcutVersionPath")){New-Item -ItemType Directory -Path "$ShortcutVersionPath" -Force | Out-Null}
-Copy-Item -Path "..\Install\$ShortcutVersion.ini" -Destination "$ShortcutVersionPath" -Force
+Copy-Item -Path ".\$ShortcutVersion.ini" -Destination "$ShortcutVersionPath" -Force
 "@ | Set-Content -Path $InstallScriptPath
 
 # Create Uninstall file for Intune
@@ -193,8 +189,8 @@ if ((Test-Path "$ShortcutVersionPath\$ShortcutVersion.ini") -and (Test-Path "$Pu
 @"
 Intune Packaging Instructions for $ShortcutName :
 
-Install Command: powershell.exe -ExecutionPolicy Bypass -File .\Scripts\Install_$ShortcutName.ps1
-Uninstall Command: powershell.exe -ExecutionPolicy Bypass -File .\Scripts\Uninstall_$ShortcutName.ps1
+Install Command: powershell.exe -ExecutionPolicy Bypass -File .\Install_$ShortcutName.ps1
+Uninstall Command: powershell.exe -ExecutionPolicy Bypass -File .\Uninstall_$ShortcutName.ps1
 Detection Rules: Check if file exists - $PublicDesktopFolder\$ShortcutName.lnk
 "@ | Set-Content -Path $InstructionsFilePath
 
