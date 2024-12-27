@@ -201,7 +201,7 @@ $Arguments = "-c `"$WorkingDir`" -s `"$InstallScriptPath`" -o `"$OutputFolder`""
 Write-Host "Executing: $IntuneWinAppUtilPath $Arguments"
 
 # Execute the process
-$Process = Start-Process -FilePath $IntuneWinAppUtilPath -ArgumentList $Arguments -NoNewWindow -Wait -PassThru
+$Process = Start-Process -FilePath $IntuneWinAppUtilPath -ArgumentList $Arguments -Wait -PassThru -WindowStyle Hidden
 
 # Handle process exit codes
 if ($Process.ExitCode -eq 0) {
