@@ -174,12 +174,24 @@ switch ($ShortcutTargetType) {
     }
     'url' {
         $ShortcutTarget = Get-UserInput-GUI 'URL Target' 'Enter the URL (e.g., https://example.com):'
-        if (-not ($ShortcutTarget)) {
-            Show-ErrorAndExit -Message 'Please re-run the script and Enter vaild  File Path'`
-                        -LogMessage 'File Path cant be Empty.' -LogFile $LogFile
-        }else{
-            Write-Log -Message "User provided URL Target: $ShortcutTarget" -LogFile $LogFile
-            }
+          if (-not ($ShortcutTarget) -or -not ($ShortcutTarget -match '^(https?|ftp|sftp|file)://')) {
+                Show-ErrorAndExit -Message 'Invalid URL. Please re-run the script and enter a valid URL (e.g., https://example.com, ftp://example.com, sftp://example.com, file://path).' `
+                                  -LogMessage 'URL input was invalid or empty.' -LogFile $LogFile
+           } else {
+                try {
+                    # Parse the URL using [System.Uri] for advanced validation
+                    $Uri = [System.Uri]::new($ShortcutTarget)
+                    if (-not $Uri.IsAbsoluteUri) {
+                        throw [System.Exception]::new("The URL must be an absolute URI.")
+                    }
+                    # Log the valid URL input
+                    Write-Log -Message "User provided a valid URL Target: $ShortcutTarget" -LogFile $LogFile
+                } catch {
+                        # Log and display an error if [System.Uri] validation fails
+                        Show-ErrorAndExit -Message 'Invalid URL. Please ensure the URL is correctly formatted and absolute.' `
+                                         -LogMessage "URL validation failed: $_" -LogFile $LogFile
+                         }
+                   }
     }
     default {
        Show-ErrorAndExit -Message "Invalid target type. Please choose either URL, FilePath, or MsApp."`
