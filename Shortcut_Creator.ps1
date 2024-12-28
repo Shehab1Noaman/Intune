@@ -134,8 +134,8 @@ function Delete-FileWithConfirmation {
         }
     } else {
         # If No, exit the script
-        Show-ErrorAndExit -Message 'Creating $IntuneWinFile has been canceled. Please rerun the script and choose another path'`
-                        -LogMessage 'File deletion canceled. Please rerun the script' -LogFile $LogFile
+        Show-ErrorAndExit -Message 'The process has been canceled. Please rerun the script and choose another output path'`
+                        -LogMessage 'File deletion canceled. Please re-run the script' -LogFile $LogFile
     }
 }
 
