@@ -110,6 +110,35 @@ function Show-ErrorAndExit {
    exit
 }
 
+# Check exsting IntuneWinAppUtil
+function Delete-FileWithConfirmation {
+    param (
+        [string]$FilePath,
+        [string]$LogFile
+    )
+
+    # Show a Yes/No message box asking if the user wants to delete the file
+    $result = [System.Windows.Forms.MessageBox]::Show("The $ShortcutName.intunewin file already exists in the destination folder. Do you want to delete the file: $FilePath?", 
+                                                      "Delete File Confirmation", 
+                                                      [System.Windows.Forms.MessageBoxButtons]::YesNo, 
+                                                      [System.Windows.Forms.MessageBoxIcon]::Question)
+
+    # Check the result of the message box (Yes or No)
+    if ($result -eq [System.Windows.Forms.DialogResult]::Yes) {
+        # If Yes, delete the file
+        if (Test-Path $IntuneWinFile) {
+            Remove-Item $IntuneWinFile -Force
+            Write-Log -Message "File $IntuneWinFile deleted successfully." -LogFile $LogFile
+        } else {
+            Write-Log -Message "File $IntuneWinFile not found. Nothing to delete." -LogFile $LogFile
+        }
+    } else {
+        # If No, exit the script
+        Write-Log -Message "File deletion canceled. Please rerun the script." -LogFile $LogFile
+        exit
+    }
+}
+
 
 # Prompt user for required inputs
 $ShortcutName = Get-UserInput-GUI 'Shortcut Name' 'Enter the name of the shortcut (e.g., MyAppShortcut):'
@@ -222,6 +251,20 @@ if (-not ($OutputFolder)) {
     }
 
 
+# Check IntuneWinAppUtil for packaging
+$IntuneWinAppUtilPath = ".\IntuneWinAppUtil.exe"
+$IntuneWinFile = Join-Path -Path $OutputFolder -ChildPath "Install_$ShortcutName.intunewin"
+
+if (-not (Test-Path $IntuneWinAppUtilPath)) {
+    Show-ErrorAndExit -Message "$IntuneWinAppUtilPath not found"`
+                        -LogMessage "$IntuneWinAppUtilPath not found. Exiting script." -LogFile $LogFile
+}elseif(Test-Path $IntuneWinFile){
+
+Delete-FileWithConfirmation -FilePath $IntuneWinFile -LogFile $LogFile
+#Show-ErrorAndExit -Message "The $ShortcutName.intunewin file already exists in the destination folder"`
+                       #-LogMessage "The $ShortcutName.intunewin file already exists in the destination folder." -LogFile $LogFile
+}
+
 # Generate shortcut (.lnk) file
 $ShortcutPath = Join-Path -Path $WorkingDir -ChildPath "$ShortcutName.lnk"
 $WScriptShell = New-Object -ComObject WScript.Shell
@@ -236,11 +279,9 @@ $Shortcut.IconLocation = "%ALLUSERSPROFILE%\ShortcutsIcons\$ShortcutName.ico"
 $Shortcut.Save()
 Write-Log -Message "Created shortcut: $ShortcutPath" -LogFile $LogFile
 
-
 # Copy the shortcut icon to install folder
 Copy-Item -Path "$ShortcutIcon" -Destination "$WorkingDir\$ShortcutName.ico" -Force
 Write-Log -Message "Copied icon to: $WorkingDir\$ShortcutName.ico" -LogFile $LogFile
-
 
 # Create Version, Install, Uninstall, Detection, Instructions and Shortcut Version path  files for Intune
 $InstallScriptPath = Join-Path -Path $WorkingDir -ChildPath "Install_$ShortcutName.ps1"
@@ -256,7 +297,6 @@ $ShortcutVersionInstallPath = Join-Path -Path $WorkingDir -ChildPath "$ShortcutV
 $ShortcutVersion
 "@ | Set-Content -Path $ShortcutVersionInstallPath
 Write-Log -Message "Created version file: $ShortcutVersionInstallPath" -LogFile $LogFile
-
 
 # Generate Files
 $PublicDesktopFolder = "C:\Users\Public\Desktop"
@@ -310,12 +350,6 @@ Detection Rules: Check if file exists - $PublicDesktopFolder\$ShortcutName.lnk
 "@ | Set-Content -Path $InstructionsFilePath
 Write-Log -Message "Created version file: $InstructionsFilePath" -LogFile $LogFile
 
-# Execute IntuneWinAppUtil for packaging
-$IntuneWinAppUtilPath = ".\IntuneWinAppUtil.exe"
-if (-not (Test-Path $IntuneWinAppUtilPath)) {
-    Show-ErrorAndExit -Message "$IntuneWinAppUtilPath not found"`
-                        -LogMessage "$IntuneWinAppUtilPath not found. Exiting script." -LogFile $LogFile
-}
 
 $Arguments = "-c `"$WorkingDir`" -s `"$InstallScriptPath`" -o `"$OutputFolder`""
 Write-Log -Message "Executing: $IntuneWinAppUtilPath $Arguments" -LogFile $LogFile
