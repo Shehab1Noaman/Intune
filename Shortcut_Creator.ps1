@@ -292,8 +292,8 @@ Write-Log -Message "Created version file: $DetectionScriptPath" -LogFile $LogFil
 @"
 Intune Packaging Instructions for $ShortcutName :
 
-Install Command: powershell.exe -ExecutionPolicy Bypass -File .\Install_$ShortcutName.ps1
-Uninstall Command: powershell.exe -ExecutionPolicy Bypass -File .\Uninstall_$ShortcutName.ps1
+Install Command: powershell.exe -ExecutionPolicy Bypass -File ".\Install_$ShortcutName.ps1"
+Uninstall Command: powershell.exe -ExecutionPolicy Bypass -File ".\Uninstall_$ShortcutName.ps1"
 Detection Rules: Check if file exists - $PublicDesktopFolder\$ShortcutName.lnk
 "@ | Set-Content -Path $InstructionsFilePath
 Write-Log -Message "Created version file: $InstructionsFilePath" -LogFile $LogFile
