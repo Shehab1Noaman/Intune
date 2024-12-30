@@ -292,7 +292,7 @@ $ShortcutVersionPath = "C:\ProgramData\ShortcutsVersion\$ShortcutName"
 # Process the user's choice
 if ($UserChoice -eq "Copy File/Folder") {
     
-    $CopyFile = Get-UserInput-GUI -Title 'File / Folder Path' -Message 'Enter the full path to the file or Folder that you need to be downloaded on Users Desktop' -OptionA "OK" -OptionB "Cancel" -TextInput "D:\\example"
+    $CopyFile = Get-UserInput-GUI -Title 'File / Folder Path' -Message 'Enter the full path to the file or Folder that you need to be downloaded on Users Desktop' -OptionA "OK" -OptionB "Cancel" -TextInput "D:\example"
     if (-not ($CopyFile) -or ($CopyFile.Trim() -eq "")) {
         Show-ErrorAndExit -Message 'Please re-run the script and Enter the File / Folder Path'`
                             -LogMessage 'No File / Folder Path added.' -LogFile $LogFile
@@ -377,7 +377,7 @@ Write-Log -Message "Created detection script: $DetectionScriptPath" -LogFile $Lo
 
     switch ($ShortcutTargetType) {
         'msapp' {
-            $AppID = Get-UserInput-GUI 'MsApp AppUserModelID' 'Enter the AppUserModelID for the Microsoft Store app (e.g., Microsoft.CompanyPortal_8wekyb3d8bbwe!App):' -OptionA "OK" -OptionB "Cancel" -TextInput " "
+            $AppID = Get-UserInput-GUI 'MsApp AppUserModelID' 'Enter the AppUserModelID for the Microsoft Store app (e.g., Microsoft.CompanyPortal_8wekyb3d8bbwe!App):' -OptionA "OK" -OptionB "Cancel" -TextInput "Microsoft.CompanyPortal_8wekyb3d8bbwe!App"
             Write-Log -Message "User provided MsApp AppUserModelID: $AppID" -LogFile $LogFile
 
             if (-not ($AppID)) {
@@ -391,7 +391,7 @@ Write-Log -Message "Created detection script: $DetectionScriptPath" -LogFile $Lo
             Write-Log -Message "The MSAPP is set to: $AppID" -LogFile $LogFile
         }
         'filepath' {
-            $ShortcutTarget = Get-UserInput-GUI 'File Path Target' 'Enter the path to the app or file (e.g., C:\Program Files\MyApp\app.exe):' -OptionA "OK" -OptionB "Cancel" -TextInput " "
+            $ShortcutTarget = Get-UserInput-GUI 'File Path Target' 'Enter the path to the app or file (e.g., C:\Program Files\MyApp\app.exe):' -OptionA "OK" -OptionB "Cancel" -TextInput "C:\Program Files\MyApp\app.exe"
     
                 if (-not ($ShortcutTarget)) {
                 Show-ErrorAndExit -Message 'Please re-run the script and Enter vaild  File Path'`
