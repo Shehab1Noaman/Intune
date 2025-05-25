@@ -1,7 +1,7 @@
 ﻿Try {
     # Get a list of stored credentials
     $creds = cmdkey /list | Where-Object { $_ -match "Target:" } | ForEach-Object {
-        ($_ -split ":")[1].Trim()
+        ($_ -split "=")[1].Trim()
     }
 
     # Delete each credential
