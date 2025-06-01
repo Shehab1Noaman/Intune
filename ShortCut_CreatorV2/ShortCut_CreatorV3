@@ -133,9 +133,9 @@ function DeleteFileWithConfirmation {
     Write-Log -Message "DeleteFileWithConfirmation called for '$FilePath'." -LogFile $LogFile
     # Show a Yes/No message box asking if the user wants to delete the file
     $result = [System.Windows.Forms.MessageBox]::Show("The $FileNameForPrompt file already exists in the destination folder. Do you want to delete it: $FilePath?",
-                                                       "Delete File Confirmation",
-                                                       [System.Windows.Forms.MessageBoxButtons]::YesNo,
-                                                       [System.Windows.Forms.MessageBoxIcon]::Question)
+                                                     "Delete File Confirmation",
+                                                     [System.Windows.Forms.MessageBoxButtons]::YesNo,
+                                                     [System.Windows.Forms.MessageBoxIcon]::Question)
 
     Write-Log -Message "Deletion confirmation dialog result: '$result'." -LogFile $LogFile
     # Check the result of the message box (Yes or No)
@@ -174,7 +174,7 @@ function Show-ProgressWindow {
     $Form.MinimizeBox = $false # Standard boolean assignment
     $Form.MaximizeBox = $false # Standard boolean assignment
     $Form.ControlBox = $false   # Standard boolean assignment # Disable close button
-    $Form.TopMost = $true      # Standard boolean assignment # Keep on top
+    $Form.TopMost = $true       # Standard boolean assignment # Keep on top
 
     $Label = New-Object System.Windows.Forms.Label
     $Label.Text = $Message
@@ -452,38 +452,7 @@ function Show-MainConfigurationGUI {
     $grpShortcutOptions.Controls.Add($btnBrowseIcon)
     $innerY += $textBoxHeight + $controlSpacing * 2
 
-    # Shortcut Location
-    $lblShortcutLocation = New-Object System.Windows.Forms.Label
-    $lblShortcutLocation.Text = "Shortcut Location:"
-    $lblShortcutLocation.Left = 20
-    $lblShortcutLocation.Top = $innerY
-    $lblShortcutLocation.AutoSize = $true # Standard boolean assignment
-    $lblShortcutLocation.Font = $FontNormal
-    $grpShortcutOptions.Controls.Add($lblShortcutLocation)
-    $innerY += $labelHeight
-
-    $rbLocDesktop = New-Object System.Windows.Forms.RadioButton
-    $rbLocDesktop.Text = "Desktop"
-    $rbLocDesktop.Left = 20
-    $rbLocDesktop.Top = $innerY
-    $rbLocDesktop.AutoSize = $true # Standard boolean assignment
-    $rbLocDesktop.Checked = $true # Default # Standard boolean assignment
-    $grpShortcutOptions.Controls.Add($rbLocDesktop)
-
-    $rbLocTaskbar = New-Object System.Windows.Forms.RadioButton
-    $rbLocTaskbar.Text = "Taskbar (Pin)"
-    $rbLocTaskbar.Left = $rbLocDesktop.Right + 20
-    $rbLocTaskbar.Top = $innerY
-    $rbLocTaskbar.AutoSize = $true # Standard boolean assignment
-    $grpShortcutOptions.Controls.Add($rbLocTaskbar)
-
-    $rbLocBoth = New-Object System.Windows.Forms.RadioButton
-    $rbLocBoth.Text = "Both Desktop & Taskbar"
-    $rbLocBoth.Left = $rbLocTaskbar.Right + 20
-    $rbLocBoth.Top = $innerY
-    $rbLocBoth.AutoSize = $true # Standard boolean assignment
-    $grpShortcutOptions.Controls.Add($rbLocBoth)
-    $innerY += $labelHeight + $controlSpacing # For future elements
+    
 
     # Set initial visibility
     $grpShortcutOptions.Visible = $rbCreateShortcut.Checked
@@ -634,27 +603,26 @@ function Show-MainConfigurationGUI {
 
         # Collect all inputs into a PSCustomObject
         $script:FormResult = [PSCustomObject]@{
-            ShortcutName      = $txtShortcutName.Text.Trim()
-            ShortcutVersion   = $txtShortcutVersion.Text.Trim()
-            OutputFolder      = $txtOutputFolder.Text.Trim()
-            ActionType        = if ($rbCreateShortcut.Checked) { "CreateShortCut" } else { "CopyFileFolder" }
+            ShortcutName        = $txtShortcutName.Text.Trim()
+            ShortcutVersion     = $txtShortcutVersion.Text.Trim()
+            OutputFolder        = $txtOutputFolder.Text.Trim()
+            ActionType          = if ($rbCreateShortcut.Checked) { "CreateShortCut" } else { "CopyFileFolder" }
             # Shortcut specific properties
             ShortcutTargetType = if ($rbCreateShortcut.Checked) {
                                      if ($rbTargetURL.Checked) { "URL" }
                                      elseif ($rbTargetFilePath.Checked) { "FilePath" }
                                      elseif ($rbTargetMsApp.Checked) { "MsApp" }
                                      else { $null } # Should not happen with validation
-                                 } else { $null }
-            ShortcutTarget     = if ($rbCreateShortcut.Checked) { $txtTargetValue.Text.Trim() } else { $null }
-            ShortcutIcon       = if ($rbCreateShortcut.Checked) { $txtIconPath.Text.Trim() } else { $null }
-            ShortcutLocation   = if ($rbCreateShortcut.Checked) {
+                                   } else { $null }
+            ShortcutTarget      = if ($rbCreateShortcut.Checked) { $txtTargetValue.Text.Trim() } else { $null }
+            ShortcutIcon        = if ($rbCreateShortcut.Checked) { $txtIconPath.Text.Trim() } else { $null }
+            ShortcutLocation    = if ($rbCreateShortcut.Checked) {
                                      if ($rbLocDesktop.Checked) { "Desktop" }
                                      elseif ($rbLocTaskbar.Checked) { "Taskbar" }
-                                     elseif ($rbLocBoth.Checked) { "Both" }
                                      else { $null } # Should not happen
-                                 } else { $null }
+                                   } else { $null }
             # Copy File/Folder specific property
-            CopySourcePath     = if ($rbCopyFileFolder.Checked) { $txtCopySourcePath.Text.Trim() } else { $null }
+            CopySourcePath      = if ($rbCopyFileFolder.Checked) { $txtCopySourcePath.Text.Trim() } else { $null }
         }
         $Form.Close()
     })
@@ -669,9 +637,6 @@ function Show-MainConfigurationGUI {
     return $script:FormResult
 }
 #endregion
-
-#++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++#
-#++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++#
 
 #region Main Script Logic Execution
 
@@ -699,6 +664,7 @@ if ($UserInput -eq $null) {
 
 # Update WorkingDir and LogFile path based on UserInput.ShortcutName
 $ShortcutName = $UserInput.ShortcutName
+$ShortcutVersion =$UserInput.ShortcutVersion
 $WorkingDir = Join-Path -Path $env:TEMP -ChildPath "IntuneWinPackage\$ShortcutName"
 $Script:LogFile = Join-Path -Path $WorkingDir -ChildPath "PackagingLog.txt" # Update log file path
 
@@ -736,6 +702,8 @@ if ($UserInput.ActionType -eq "CreateShortCut") {
     Write-Log -Message "Shortcut Target: $($UserInput.ShortcutTarget)" -LogFile $Script:LogFile
     Write-Log -Message "Shortcut Icon Path: $($UserInput.ShortcutIcon)" -LogFile $Script:LogFile
     Write-Log -Message "Shortcut Location: $($UserInput.ShortcutLocation)" -LogFile $Script:LogFile
+    
+
 } else { # CopyFileFolder
     Write-Log -Message "Copy Source Path: $($UserInput.CopySourcePath)" -LogFile $Script:LogFile
 }
@@ -758,11 +726,6 @@ $CurrentUserDesktop = "$env:USERPROFILE\Desktop" # For per-user desktop
 $CopyFile = $UserInput.CopySourcePath # Use value from GUI
 $CurrentUserTaskbarPin = "$env:APPDATA\Microsoft\Internet Explorer\Quick Launch\User Pinned\TaskBar" # Not a direct path, requires COM for pinning
 
-  $ShortcutTargetType = $UserInput.ShortcutTargetType
-  $ShortcutTarget = $UserInput.ShortcutTarget
-  $ShortcutIcon = $UserInput.ShortcutIcon
-  $ShortcutLocation = $UserInput.ShortcutLocation #
-
 # Create Version file for Intune
 @"
 # Version.ini
@@ -779,31 +742,23 @@ Install Command: powershell.exe -ExecutionPolicy Bypass -File ".\Install_$Shortc
 Uninstall Command: powershell.exe -ExecutionPolicy Bypass -File ".\Uninstall_$ShortcutName.ps1"
 Detection Rules: Check Detection Script
 "@ | Set-Content -Path $InstructionsFilePath
-Write-Log -Message "Created version file: $InstructionsFilePath" -LogFile $Script:LogFile
-
-
-# Helper function for pinning to taskbar (requires a shortcut file)
-
-
-# Helper function for unpinning from taskbar (requires a shortcut file)
-
-
+Write-Log -Message "Created Instructions file: $InstructionsFilePath" -LogFile $Script:LogFile
 
 #++++++++++++++++++++++++++++++++++++++++++#
 
 #Process the user's choice
 
-if ($UserInput.ActionType -eq "CopyFileFolder") {  #Copied folder will appear on the advised location only
-
-    #$CopyFile = $UserInput.CopySourcePath # Use value from GUI
+if ($UserInput.ActionType -eq "CopyFileFolder") {  #Copied folder will appear on the advised location only
 
     # Copy the selected file/folder to the working directory
     try {
         Copy-Item -Path $CopyFile -Destination $WorkingDir -Recurse -Force -ErrorAction Stop
         $FileName = [System.IO.Path]::GetFileName($CopyFile)
+        $FileExtension = [System.IO.Path]::GetExtension($CopyFile)
+        $NewFileNameWithExtension = "$ShortcutName$FileExtension"
         Write-Log -Message "Copied file/folder '$FileName' to: $WorkingDir" -LogFile $Script:LogFile
-        Rename-Item $FileName -NewName $ShortcutName # <-- ISSUE HERE
-        Write-Log -Message " Rnamed '$FileName' to '$ShortcutName'" -LogFile $Script:LogFile
+        Rename-Item -Path (Join-Path -Path $WorkingDir -ChildPath $FileName) -NewName $NewFileNameWithExtension -ErrorAction Stop
+        Write-Log -Message " Renamed '$FileName' to '$NewFileNameWithExtension'" -LogFile $Script:LogFile
     }
     catch {
         Show-ErrorAndExit -Message "Failed to copy file/folder '$CopyFile' to working directory. Error: $($_.Exception.Message)" `
@@ -814,7 +769,7 @@ if ($UserInput.ActionType -eq "CopyFileFolder") {  #Copied folder will appear o
     @"
     # Install_$ShortcutName.ps1
     # Copy the item to the Public Desktop folder
-    Copy-Item -Path ".\$ShortcutName" -Destination "$PublicDesktopFolder" -Recurse -Force -ErrorAction Stop
+    Copy-Item -Path ".\$NewFileNameWithExtension" -Destination "$PublicDesktopFolder" -Recurse -Force -ErrorAction Stop
     if (-not (Test-Path "$ShortcutVersionPath")){New-Item -ItemType Directory -Path "$ShortcutVersionPath" -Force | Out-Null}
     Copy-Item -Path ".\$ShortcutVersion.ini" -Destination "$ShortcutVersionPath" -Recurse -Force -ErrorAction Stop
 "@ | Set-Content -Path $InstallScriptPath
@@ -827,7 +782,7 @@ if ($UserInput.ActionType -eq "CopyFileFolder") {  #Copied folder will appear o
     # Uninstall_$ShortcutName.ps1
     # Remove the item from the Public Desktop folder
 
-    Remove-Item -Path "$PublicDesktopFolder\$ShortcutName" -Recurse -Force -ErrorAction Stop
+    Remove-Item -Path "$PublicDesktopFolder\$NewFileNameWithExtension" -Recurse -Force -ErrorAction Stop
     Remove-Item -Path "$ShortcutVersionPath\$ShortcutVersion.ini" -Recurse -Force -ErrorAction Stop
 "@ | Set-Content -Path $UninstallScriptPath
 
@@ -840,7 +795,7 @@ if ($UserInput.ActionType -eq "CopyFileFolder") {  #Copied folder will appear o
     # Detection Script for $ShortcutName (Copy File/Folder)
 
     # Check if the version file and item are present
-    if ((Test-Path "$ShortcutVersionPath\$ShortcutVersion.ini") -and (Test-Path "$PublicDesktopFolder\$ShortcutName")) {
+    if ((Test-Path "$ShortcutVersionPath\$ShortcutVersion.ini") -and (Test-Path "$PublicDesktopFolder\$NewFileNameWithExtension")) {
         Write-Host "Version .ini file and item installation detected."
         exit 0
     } else {
@@ -853,8 +808,12 @@ if ($UserInput.ActionType -eq "CopyFileFolder") {  #Copied folder will appear o
     Write-Log -Message "Created detection script: $DetectionScriptPath" -LogFile $Script:LogFile
 
 }elseif ($UserInput.ActionType -eq "CreateShortCut") {
-    If($ShortcutLocation -eq "Desktop") {
+    $ShortcutLocation = $UserInput.ShortcutLocation # Retrieve from UserInput object
 
+        $ShortcutTargetType = $UserInput.ShortcutTargetType
+        $ShortcutTarget = $UserInput.ShortcutTarget
+        $ShortcutIcon = $UserInput.ShortcutIcon
+        
         # Generate shortcut (.lnk) file in working directory
         $ShortcutPath = Join-Path -Path $WorkingDir -ChildPath "$ShortcutName.lnk"
         try {
@@ -887,7 +846,7 @@ if ($UserInput.ActionType -eq "CopyFileFolder") {  #Copied folder will appear o
         #===========
         # Build Install script content
         @"
-        # # Install_$ShortcutName.ps1
+        # Install_$ShortcutName.ps1
         # Create shortcut
         # Copy shortcut to Public Desktop folder
         Copy-Item -Path ".\$ShortcutName.lnk" -Destination "$PublicDesktopFolder" -Recurse -Force -ErrorAction Stop
@@ -896,7 +855,7 @@ if ($UserInput.ActionType -eq "CopyFileFolder") {  #Copied folder will appear o
         if (-not (Test-Path "$ShortcutVersionPath")){New-Item -ItemType Directory -Path "$ShortcutVersionPath" -Force | Out-Null}
         Copy-Item -Path ".\$ShortcutVersion.ini" -Destination "$ShortcutVersionPath" -Recurse -Force -ErrorAction Stop
 "@ | Set-Content -Path $InstallScriptPath
-        Write-Log -Message "Created version file: $InstallScriptPath" -LogFile $Script:LogFile
+        Write-Log -Message "Created install script: $InstallScriptPath" -LogFile $Script:LogFile
 
         # Build Uninstall script content
         @"
@@ -905,7 +864,7 @@ if ($UserInput.ActionType -eq "CopyFileFolder") {  #Copied folder will appear o
         Remove-Item -Path "$PublicDesktopFolder\$ShortcutName.lnk" -Force
         Remove-Item -Path "$ShortcutVersionPath\$ShortcutVersion.ini" -Force
 "@ | Set-Content -Path $UninstallScriptPath
-        Write-Log -Message "Created version file: $UninstallScriptPath" -LogFile $Script:LogFile
+        Write-Log -Message "Created uninstall script: $UninstallScriptPath" -LogFile $Script:LogFile
 
         # Create Detection file for Intune ###
         @"
@@ -919,139 +878,35 @@ if ($UserInput.ActionType -eq "CopyFileFolder") {  #Copied folder will appear o
             exit 1
         }
 "@ | Set-Content -Path $DetectionScriptPath
-        Write-Log -Message "Created version file: $DetectionScriptPath" -LogFile $Script:LogFile
+        Write-Log -Message "Created detection script: $DetectionScriptPath" -LogFile $Script:LogFile
 
-    }elseif ($ShortcutLocation -eq "Taskbar" ) { 
-    @"
-    function Pin-ToTaskbar {
-        param (
-            [string]`$ShortcutPath
-        )
-        `$Shell = New-Object -ComObject Shell.Application
-        `$Folder = `$Shell.Namespace((Split-Path -Path `$ShortcutPath -Parent))
-        `$Item = `$Folder.ParseName((Split-Path -Path `$ShortcutPath -Leaf))
-        `$Verb = `$Item.Verbs() | Where-Object { `$_.Name -eq "Pin to Tas&kbar" }
-        if (`$Verb) {
-            try {
-                `$Verb.DoIt()
-                Write-Host "Successfully pinned `$ShortcutPath to Taskbar."
-            } catch {
-                Write-Host "Failed to pin `$ShortcutPath to Taskbar. Error: `$(````$_.Exception.Message)"
-                exit 1
-            }
-        } else {
-            Write-Host "Could not find 'Pin to Taskbar' verb for `$ShortcutPath. Skipping taskbar pin."
-        }
-    }
-"@ | Set-Content -Path $PinToTaskbarScriptPath
-        Write-Log -Message "Created version file: $PinToTaskbarScriptPath" -LogFile $Script:LogFile
-
-    @"
-function Unpin-FromTaskbar {
-    param (
-        [string]`$ShortcutPath
-    )
-    `$Shell = New-Object -ComObject Shell.Application
-    `$Folder = `$Shell.Namespace((Split-Path -Path `$ShortcutPath -Parent))
-    `$Item = `$Folder.ParseName((Split-Path -Path `$ShortcutPath -Leaf))
-    `$Verb = `$Item.Verbs() | Where-Object { `$_.Name -eq "Unpin from Tas&kbar" } # Note: "&" for Alt key
-    if (`$Verb) {
-        try {
-            `$Verb.DoIt()
-            Write-Host "Successfully unpinned `$ShortcutPath from Taskbar."
-        } catch {
-            Write-Host "Failed to unpin `$ShortcutPath from Taskbar. Error: `$(````$_.Exception.Message)"
-            exit 1
-        }
-    } else {
-        Write-Host "Could not find 'Unpin from Taskbar' verb for `$ShortcutPath. Skipping taskbar unpin."
-    }
 }
-"@   | Set-Content -Path $UnpinFromTaskbarScriptBlock # <-- ISSUE HERE: Undefined variable
-        Write-Log -Message "Created version file: $UnpinFromTaskbarScriptBlock" -LogFile $Script:LogFile
-
-
-    }
- # End if ($UserInput.ActionType -eq "CreateShortCut")
-}
-
-
-$IntuneUtilOutputLog = Join-Path -Path $WorkingDir -ChildPath "IntuneWinUtilOutput.txt"
-$IntuneWinAppUtilPath = ".\IntuneWinAppUtil.exe" # This assumes IntuneWinAppUtil.exe is in the same directory as the script.
+# End if ($UserInput.ActionType -eq "CreateShortCut")
 
 Show-ProgressWindow -Title "Packaging Win32 App..." -Message "Creating .intunewin file, please wait. This may take a moment."
 Write-Log -Message "Executing IntuneWinAppUtil.exe" -LogFile $Script:LogFile
 
-try {
-    # Construct arguments separately for clarity
-    $Arguments = @(
-        '-c', "$WorkingDir", # No extra quotes needed here, Start-Process handles them for -ArgumentList
-        '-s', "$InstallScriptPath",
-        '-o', "$UserInput.OutputFolder" # Use UserInput.OutputFolder here
-    )
+$Arguments = "-c `"$WorkingDir`" -s `"$InstallScriptPath`" -o `"$OutputFolder`""
+Write-Log -Message "Executing: $IntuneWinAppUtilPath $Arguments" -LogFile $Script:LogFile
 
-    # Execute IntuneWinAppUtil.exe directly and capture output
-    # This will directly capture stdout/stderr to the log file
-    $Process = Start-Process -FilePath "$PSScriptRoot\$IntuneWinAppUtilPath" `
-                              -ArgumentList $Arguments `
-                              -Wait `
-                              -PassThru `
-                              -WindowStyle Hidden `
-                              -RedirectStandardOutput $IntuneUtilOutputLog `
-                              -RedirectStandardError $IntuneUtilOutputLog `
-                              -ErrorAction Stop
-
-    $ExitCode = $Process.ExitCode
-
-}
-catch {
-    Close-ProgressWindow
-    Show-ErrorAndExit -Message "Failed to start IntuneWinAppUtil.exe. Error: $($_.Exception.Message)" `
-                      -LogMessage "Failed to start IntuneWinAppUtil.exe. Error: $($_.Exception.Message)" -LogFile $Script:LogFile
-}
-finally {
-    Close-ProgressWindow
-}
-
-Write-Log -Message "IntuneWinAppUtil.exe process exit code: $ExitCode" -LogFile $Script:LogFile
+$Process = Start-Process -FilePath $IntuneWinAppUtilPath -ArgumentList $Arguments -Wait -PassThru -WindowStyle Hidden
+Write-Log -Message "Process exit code: $($Process.ExitCode)" -LogFile $Script:LogFile
 
 # Handle process exit codes
-if ($ExitCode -eq 0) {
-    Write-Log -Message "Packaging completed successfully! .intunewin file is located at $UserInput.OutputFolder\Install_$ShortcutName.intunewin" -LogFile $Script:LogFile
-    [System.Windows.Forms.MessageBox]::Show("Packaging completed successfully! The .intunewin file is located at:`n$UserInput.OutputFolder\Install_$ShortcutName.intunewin", "Success", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Information)
+if ($Process.ExitCode -eq 0) {
 
-    # Prompt for cleanup
-    $CleanupChoice = [System.Windows.Forms.MessageBox]::Show("Packaging is complete. Do you want to clean up the temporary working directory ($WorkingDir)?", "Cleanup Confirmation", [System.Windows.Forms.MessageBoxButtons]::YesNo, [System.Windows.Forms.MessageBoxIcon]::Question)
-    if ($CleanupChoice -eq [System.Windows.Forms.DialogResult]::Yes) {
-        try {
-            Remove-Item -Path $WorkingDir -Recurse -Force -ErrorAction Stop
-            Write-Log -Message "Cleaned up working directory: $WorkingDir" -LogFile $Script:LogFile
-            [System.Windows.Forms.MessageBox]::Show("Temporary working directory cleaned up successfully.", "Cleanup Complete", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Information)
-        }
-        catch {
-            Write-Log -Message "Failed to clean up working directory: $WorkingDir. Error: $($_.Exception.Message)" -LogFile $Script:LogFile
-            [System.Windows.Forms.MessageBox]::Show("Failed to clean up temporary working directory. Error: $($_.Exception.Message)", "Cleanup Error", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Warning)
-        }
-    } else {
-        Write-Log -Message "User chose not to clean up working directory: $WorkingDir" -LogFile $Script:LogFile
-    }
-
+    Write-Log -Message "Packaging completed successfully! .intunewin file is located at $OutputFolder" -LogFile $LogFile
 } else {
-    $ErrorDetails = ""
-    if (Test-Path $IntuneUtilOutputLog) {
-        $ErrorDetails = Get-Content -Path $IntuneUtilOutputLog -ErrorAction SilentlyContinue | Out-String
-    }
-
-    $ErrorMessage = "Packaging failed with exit code $ExitCode."
-    if ($ErrorDetails) {
-        $ErrorMessage += "`nDetails from IntuneWinAppUtil.exe:`n$ErrorDetails"
-    }
-
-    Write-Log -Message $ErrorMessage -LogFile $Script:LogFile
-    Show-ErrorAndExit -Message $ErrorMessage -LogMessage $ErrorMessage -LogFile $Script:LogFile
+    Write-Log -Message "Packaging failed with exit code $($Process.ExitCode)" -LogFile $Script:LogFile
 }
 
+# Clean up temporary working directory after packaging
+#Remove-Item -Path $WorkingDir -Recurse -Force
+#Write-Log -Message "Cleaned up working directory: $WorkingDir" -LogFile $LogFile
+
+#Write-Log -Message "Packaging process completed successfully!" -LogFile $LogFile
+
 # Final cleanup of the output log from IntuneWinAppUtil, if it exists
-Remove-Item -Path $IntuneUtilOutputLog -ErrorAction SilentlyContinue
+#Remove-Item -Path $IntuneUtilOutputLog -ErrorAction SilentlyContinue
 
 #endregion
