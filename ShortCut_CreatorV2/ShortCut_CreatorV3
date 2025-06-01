@@ -1,4 +1,4 @@
-# Intune Win32 Shortcut Packaging Script - Enhanced Single GUI Version (All Fixes Applied)
+# Intune Win32 Shortcut Packaging Script - Enhanced Single GUI Version (Boolean Fix)
 
 #region Add Required Assemblies
 Add-Type -AssemblyName System.Windows.Forms
@@ -42,11 +42,11 @@ function Get-FileBrowserInput {
     try {
         $OpenFileDialog = New-Object System.Windows.Forms.OpenFileDialog
         $OpenFileDialog.Title = $Title
-        $OpenFileDialog.Filter = $Filter # Standard filter assignment
+        $OpenFileDialog.Filter = $Filter
         $OpenFileDialog.InitialDirectory = $InitialDirectory
-        $OpenFileDialog.RestoreDirectory = $true # Standard boolean assignment
-        $OpenFileDialog.CheckFileExists = $true   # Standard boolean assignment
-        $OpenFileDialog.CheckPathExists = $true   # Standard boolean assignment
+        $OpenFileDialog.RestoreDirectory = $true
+        $OpenFileDialog.CheckFileExists = $true
+        $OpenFileDialog.CheckPathExists = $true
 
         $dialogResult = $OpenFileDialog.ShowDialog()
         Write-Log -Message "File dialog result: '$dialogResult'" -LogFile $Script:LogFile
@@ -79,7 +79,7 @@ function Get-FolderBrowserInput {
         $FolderBrowserDialog = New-Object System.Windows.Forms.FolderBrowserDialog
         $FolderBrowserDialog.Description = $Title
         $FolderBrowserDialog.SelectedPath = $InitialDirectory
-        $FolderBrowserDialog.ShowNewFolderButton = $true # Standard boolean assignment
+        $FolderBrowserDialog.ShowNewFolderButton = $true
 
         $dialogResult = $FolderBrowserDialog.ShowDialog()
         Write-Log -Message "Folder dialog result: '$dialogResult'" -LogFile $Script:LogFile
@@ -133,9 +133,9 @@ function DeleteFileWithConfirmation {
     Write-Log -Message "DeleteFileWithConfirmation called for '$FilePath'." -LogFile $LogFile
     # Show a Yes/No message box asking if the user wants to delete the file
     $result = [System.Windows.Forms.MessageBox]::Show("The $FileNameForPrompt file already exists in the destination folder. Do you want to delete it: $FilePath?",
-                                                     "Delete File Confirmation",
-                                                     [System.Windows.Forms.MessageBoxButtons]::YesNo,
-                                                     [System.Windows.Forms.MessageBoxIcon]::Question)
+                                                       "Delete File Confirmation",
+                                                       [System.Windows.Forms.MessageBoxButtons]::YesNo,
+                                                       [System.Windows.Forms.MessageBoxIcon]::Question)
 
     Write-Log -Message "Deletion confirmation dialog result: '$result'." -LogFile $LogFile
     # Check the result of the message box (Yes or No)
@@ -171,17 +171,17 @@ function Show-ProgressWindow {
     $Form.Size = New-Object System.Drawing.Size(400, 150)
     $Form.StartPosition = 'CenterScreen'
     $Form.FormBorderStyle = [System.Windows.Forms.FormBorderStyle]::FixedDialog
-    $Form.MinimizeBox = $false # Standard boolean assignment
-    $Form.MaximizeBox = $false # Standard boolean assignment
-    $Form.ControlBox = $false   # Standard boolean assignment # Disable close button
-    $Form.TopMost = $true       # Standard boolean assignment # Keep on top
+    $Form.MinimizeBox = $false
+    $Form.MaximizeBox = $false
+    $Form.ControlBox = $false
+    $Form.TopMost = $true
 
     $Label = New-Object System.Windows.Forms.Label
     $Label.Text = $Message
     $Label.Left = 20
     $Label.Top = 20
     $Label.Width = $Form.ClientSize.Width - 40
-    $Label.AutoSize = $true # Standard boolean assignment
+    $Label.AutoSize = $true
     $Label.Font = [System.Drawing.Font]::new("Microsoft Sans Serif", 10)
     $Form.Controls.Add($Label)
 
@@ -193,10 +193,10 @@ function Show-ProgressWindow {
     $ProgressBar.Height = 25
     $Form.Controls.Add($ProgressBar)
 
-    # Use a global variable or pass an object to store the form instance
     $Script:ProgressForm = $Form
     $Script:ProgressForm.Show() | Out-Null
-    $Script:ProgressForm.Refresh() # Ensure it's drawn immediately
+    # This is crucial: allow the form to render before blocking operations start
+    [System.Windows.Forms.Application]::DoEvents()
 }
 
 # Function to close the progress window
@@ -212,12 +212,12 @@ function Close-ProgressWindow {
 function Show-MainConfigurationGUI {
     $Form = New-Object System.Windows.Forms.Form
     $Form.Text = "Shortcut Creator"
-    $Form.Size = New-Object System.Drawing.Size(700, 700) # Set initial size
-    $Form.MinimumSize = $Form.Size # Prevent resizing smaller
+    $Form.Size = New-Object System.Drawing.Size(700, 600)
+    $Form.MinimumSize = $Form.Size
     $Form.StartPosition = 'CenterScreen'
-    $Form.MaximizeBox = $false # Standard boolean assignment
-    $Form.MinimizeBox = $false # Standard boolean assignment
-    $Form.FormBorderStyle = [System.Windows.Forms.FormBorderStyle]::FixedSingle # Fixed size
+    $Form.MaximizeBox = $false
+    $Form.MinimizeBox = $false
+    $Form.FormBorderStyle = [System.Windows.Forms.FormBorderStyle]::FixedSingle
 
     $FontHeader = [System.Drawing.Font]::new("Microsoft Sans Serif", 12, [System.Drawing.FontStyle]::Bold)
     $FontNormal = [System.Drawing.Font]::new("Microsoft Sans Serif", 10)
@@ -226,14 +226,13 @@ function Show-MainConfigurationGUI {
     $labelHeight = 20
     $textBoxHeight = 25
     $controlSpacing = 10
-    $radioGroupHeight = 100 # Approx height for radio button group
 
     #region -- Global Inputs --
     $lblGlobal = New-Object System.Windows.Forms.Label
     $lblGlobal.Text = "Global Application Settings"
     $lblGlobal.Left = 20
     $lblGlobal.Top = $yPos
-    $lblGlobal.AutoSize = $true # Standard boolean assignment
+    $lblGlobal.AutoSize = $true
     $lblGlobal.Font = $FontHeader
     $Form.Controls.Add($lblGlobal)
     $yPos += $labelHeight + $controlSpacing
@@ -242,7 +241,7 @@ function Show-MainConfigurationGUI {
     $lblShortcutName.Text = "App/Shortcut Name (e.g., 'MyCompanyApp'):"
     $lblShortcutName.Left = 20
     $lblShortcutName.Top = $yPos
-    $lblShortcutName.AutoSize = $true # Standard boolean assignment
+    $lblShortcutName.AutoSize = $true
     $lblShortcutName.Font = $FontNormal
     $Form.Controls.Add($lblShortcutName)
     $yPos += $labelHeight
@@ -261,7 +260,7 @@ function Show-MainConfigurationGUI {
     $lblShortcutVersion.Text = "App/Shortcut Version (e.g., '1.0'):"
     $lblShortcutVersion.Left = 20
     $lblShortcutVersion.Top = $yPos
-    $lblShortcutVersion.AutoSize = $true # Standard boolean assignment
+    $lblShortcutVersion.AutoSize = $true
     $lblShortcutVersion.Font = $FontNormal
     $Form.Controls.Add($lblShortcutVersion)
     $yPos += $labelHeight
@@ -280,7 +279,7 @@ function Show-MainConfigurationGUI {
     $lblOutputFolder.Text = "Output Folder for .intunewin file:"
     $lblOutputFolder.Left = 20
     $lblOutputFolder.Top = $yPos
-    $lblOutputFolder.AutoSize = $true # Standard boolean assignment
+    $lblOutputFolder.AutoSize = $true
     $lblOutputFolder.Font = $FontNormal
     $Form.Controls.Add($lblOutputFolder)
     $yPos += $labelHeight
@@ -291,7 +290,7 @@ function Show-MainConfigurationGUI {
     $txtOutputFolder.Top = $yPos
     $txtOutputFolder.Width = 400
     $txtOutputFolder.Height = $textBoxHeight
-    $txtOutputFolder.ReadOnly = $true # Standard boolean assignment
+    $txtOutputFolder.ReadOnly = $true
     $txtOutputFolder.Font = $FontNormal
     $Form.Controls.Add($txtOutputFolder)
 
@@ -317,7 +316,7 @@ function Show-MainConfigurationGUI {
     $grpActionType.Left = 20
     $grpActionType.Top = $yPos
     $grpActionType.Width = $Form.ClientSize.Width - 40
-    $grpActionType.Height = 60 # Adjusted for radio buttons
+    $grpActionType.Height = 60
     $grpActionType.Font = $FontNormal
     $Form.Controls.Add($grpActionType)
 
@@ -325,15 +324,15 @@ function Show-MainConfigurationGUI {
     $rbCreateShortcut.Text = "Create Shortcut"
     $rbCreateShortcut.Left = 20
     $rbCreateShortcut.Top = 20
-    $rbCreateShortcut.AutoSize = $true # Standard boolean assignment
-    $rbCreateShortcut.Checked = $true # Default # Standard boolean assignment
+    $rbCreateShortcut.AutoSize = $true
+    $rbCreateShortcut.Checked = $true
     $grpActionType.Controls.Add($rbCreateShortcut)
 
     $rbCopyFileFolder = New-Object System.Windows.Forms.RadioButton
     $rbCopyFileFolder.Text = "Copy File/Folder"
     $rbCopyFileFolder.Left = $rbCreateShortcut.Right + 50
     $rbCopyFileFolder.Top = 20
-    $rbCopyFileFolder.AutoSize = $true # Standard boolean assignment
+    $rbCopyFileFolder.AutoSize = $true
     $grpActionType.Controls.Add($rbCopyFileFolder)
     $yPos += $grpActionType.Height + $controlSpacing
     #endregion
@@ -344,7 +343,7 @@ function Show-MainConfigurationGUI {
     $grpShortcutOptions.Left = 20
     $grpShortcutOptions.Top = $yPos
     $grpShortcutOptions.Width = $Form.ClientSize.Width - 40
-    $grpShortcutOptions.Height = 250 # Ample space for content
+    $grpShortcutOptions.Height = 200
     $grpShortcutOptions.Font = $FontNormal
     $Form.Controls.Add($grpShortcutOptions)
 
@@ -355,7 +354,7 @@ function Show-MainConfigurationGUI {
     $lblTargetType.Text = "Shortcut Target Type:"
     $lblTargetType.Left = 20
     $lblTargetType.Top = $innerY
-    $lblTargetType.AutoSize = $true # Standard boolean assignment
+    $lblTargetType.AutoSize = $true # Corrected: used $true
     $lblTargetType.Font = $FontNormal
     $grpShortcutOptions.Controls.Add($lblTargetType)
     $innerY += $labelHeight
@@ -364,22 +363,22 @@ function Show-MainConfigurationGUI {
     $rbTargetURL.Text = "URL"
     $rbTargetURL.Left = 20
     $rbTargetURL.Top = $innerY
-    $rbTargetURL.AutoSize = $true # Standard boolean assignment
-    $rbTargetURL.Checked = $true # Default # Standard boolean assignment
+    $rbTargetURL.AutoSize = $true # Corrected: used $true
+    $rbTargetURL.Checked = $true # Corrected: used $true
     $grpShortcutOptions.Controls.Add($rbTargetURL)
 
     $rbTargetFilePath = New-Object System.Windows.Forms.RadioButton
-    $rbTargetFilePath.Text = "File / Folder Path"
+    $rbTargetFilePath.Text = ".exe File Path"
     $rbTargetFilePath.Left = $rbTargetURL.Right + 20
     $rbTargetFilePath.Top = $innerY
-    $rbTargetFilePath.AutoSize = $true # Standard boolean assignment
+    $rbTargetFilePath.AutoSize = $true # Corrected: used $true
     $grpShortcutOptions.Controls.Add($rbTargetFilePath)
 
     $rbTargetMsApp = New-Object System.Windows.Forms.RadioButton
     $rbTargetMsApp.Text = "Microsoft Store App (AppUserModelID)"
     $rbTargetMsApp.Left = $rbTargetFilePath.Right + 20
     $rbTargetMsApp.Top = $innerY
-    $rbTargetMsApp.AutoSize = $true # Standard boolean assignment
+    $rbTargetMsApp.AutoSize = $true # Corrected: used $true
     $grpShortcutOptions.Controls.Add($rbTargetMsApp)
     $innerY += $labelHeight + $controlSpacing
 
@@ -387,7 +386,7 @@ function Show-MainConfigurationGUI {
     $lblTargetValue.Text = "Target Value (URL, File Path, or App ID):"
     $lblTargetValue.Left = 20
     $lblTargetValue.Top = $innerY
-    $lblTargetValue.AutoSize = $true # Standard boolean assignment
+    $lblTargetValue.AutoSize = $true # Corrected: used $true
     $lblTargetValue.Font = $FontNormal
     $grpShortcutOptions.Controls.Add($lblTargetValue)
     $innerY += $labelHeight
@@ -421,18 +420,18 @@ function Show-MainConfigurationGUI {
     $lblIconPath.Text = "Shortcut Icon Path (.ico):"
     $lblIconPath.Left = 20
     $lblIconPath.Top = $innerY
-    $lblIconPath.AutoSize = $true # Standard boolean assignment
+    $lblIconPath.AutoSize = $true # Corrected: used $true
     $lblIconPath.Font = $FontNormal
     $grpShortcutOptions.Controls.Add($lblIconPath)
     $innerY += $labelHeight
 
     $txtIconPath = New-Object System.Windows.Forms.TextBox
-    $txtIconPath.Text = "C:\Temp\example.ico" # Default for example or empty
+    $txtIconPath.Text = "C:\Temp\example.ico"
     $txtIconPath.Left = 20
     $txtIconPath.Top = $innerY
     $txtIconPath.Width = $grpShortcutOptions.ClientSize.Width - 150
     $txtIconPath.Height = $textBoxHeight
-    $txtIconPath.ReadOnly = $true # Standard boolean assignment
+    $txtIconPath.ReadOnly = $true # Corrected: used $true
     $txtIconPath.Font = $FontNormal
     $grpShortcutOptions.Controls.Add($txtIconPath)
 
@@ -443,20 +442,16 @@ function Show-MainConfigurationGUI {
     $btnBrowseIcon.Width = 100
     $btnBrowseIcon.Height = $textBoxHeight
     $btnBrowseIcon.Add_Click({
-        # Ensure the Filter string is correctly passed
         $selectedIcon = Get-FileBrowserInput -Title "Select Shortcut Icon" -Filter "Icon Files (*.ico)|*.ico|All Files (*.*)|*.*"
         if ($selectedIcon) {
             $txtIconPath.Text = $selectedIcon
         }
     })
     $grpShortcutOptions.Controls.Add($btnBrowseIcon)
-    $innerY += $textBoxHeight + $controlSpacing * 2
-
-    
 
     # Set initial visibility
     $grpShortcutOptions.Visible = $rbCreateShortcut.Checked
-    $btnBrowseTarget.Visible = $rbTargetFilePath.Checked # Initially only visible for FilePath
+    $btnBrowseTarget.Visible = $rbTargetFilePath.Checked
 
     # Handle radio button clicks to update visibility and default text
     $rbCreateShortcut.Add_CheckedChanged({
@@ -469,21 +464,23 @@ function Show-MainConfigurationGUI {
         if ($rbTargetURL.Checked) {
             $lblTargetValue.Text = "URL (e.g., https://example.com):"
             $txtTargetValue.Text = "https://example.com"
-            $btnBrowseTarget.Visible = $false # Standard boolean assignment
+            $btnBrowseTarget.Visible = $false
         }
     })
+
     $rbTargetFilePath.Add_CheckedChanged({
         if ($rbTargetFilePath.Checked) {
-            $lblTargetValue.Text = "Target File / Folder Path (e.g., C:\Program Files\App\app.exe):"
-            $txtTargetValue.Text = "C:\Program Files\MyApp\app.exe"
-            $btnBrowseTarget.Visible = $true # Standard boolean assignment
+            $lblTargetValue.Text = "File Path (e.g., C:\Program Files\App\App.exe):"
+            $txtTargetValue.Text = "C:\Program Files\MyApplication\App.exe"
+            $btnBrowseTarget.Visible = $true
         }
     })
+
     $rbTargetMsApp.Add_CheckedChanged({
-        if ($rbTargetMsApp.Checked) { # Corrected from rbMsApp to rbTargetMsApp
+        if ($rbTargetMsApp.Checked) {
             $lblTargetValue.Text = "AppUserModelID (e.g., Microsoft.CompanyPortal_8wekyb3d8bbwe!App):"
             $txtTargetValue.Text = "Microsoft.CompanyPortal_8wekyb3d8bbwe!App"
-            $btnBrowseTarget.Visible = $false # Standard boolean assignment
+            $btnBrowseTarget.Visible = $false
         }
     })
 
@@ -493,9 +490,9 @@ function Show-MainConfigurationGUI {
     $grpCopyFileFolder = New-Object System.Windows.Forms.GroupBox
     $grpCopyFileFolder.Text = "Copy File/Folder Configuration"
     $grpCopyFileFolder.Left = 20
-    $grpCopyFileFolder.Top = $yPos # Same starting position as Shortcut Options
+    $grpCopyFileFolder.Top = $yPos
     $grpCopyFileFolder.Width = $Form.ClientSize.Width - 40
-    $grpCopyFileFolder.Height = 100 # Adjusted for content
+    $grpCopyFileFolder.Height = 100
     $grpCopyFileFolder.Font = $FontNormal
     $Form.Controls.Add($grpCopyFileFolder)
 
@@ -505,7 +502,7 @@ function Show-MainConfigurationGUI {
     $lblCopySourcePath.Text = "Source File or Folder Path:"
     $lblCopySourcePath.Left = 20
     $lblCopySourcePath.Top = $innerYCopy
-    $lblCopySourcePath.AutoSize = $true # Standard boolean assignment
+    $lblCopySourcePath.AutoSize = $true # Corrected: used $true
     $lblCopySourcePath.Font = $FontNormal
     $grpCopyFileFolder.Controls.Add($lblCopySourcePath)
     $innerYCopy += $labelHeight
@@ -516,7 +513,7 @@ function Show-MainConfigurationGUI {
     $txtCopySourcePath.Top = $innerYCopy
     $txtCopySourcePath.Width = $grpCopyFileFolder.ClientSize.Width - 150
     $txtCopySourcePath.Height = $textBoxHeight
-    $txtCopySourcePath.ReadOnly = $true # Standard boolean assignment
+    $txtCopySourcePath.ReadOnly = $true # Corrected: used $true
     $txtCopySourcePath.Font = $FontNormal
     $grpCopyFileFolder.Controls.Add($txtCopySourcePath)
 
@@ -527,7 +524,6 @@ function Show-MainConfigurationGUI {
     $btnBrowseCopySource.Width = 100
     $btnBrowseCopySource.Height = $textBoxHeight
     $btnBrowseCopySource.Add_Click({
-        # Ensure filter is handled correctly
         $selectedItem = Get-FileBrowserInput -Title "Select File to Copy" -Filter "All Files (*.*)|*.*"
         if ($selectedItem) {
             $txtCopySourcePath.Text = $selectedItem
@@ -543,7 +539,7 @@ function Show-MainConfigurationGUI {
     $btnGenerate = New-Object System.Windows.Forms.Button
     $btnGenerate.Text = "Generate Package"
     $btnGenerate.Left = $Form.ClientSize.Width - 250
-    $btnGenerate.Top = $Form.ClientSize.Height - 60 # Position near bottom
+    $btnGenerate.Top = $Form.ClientSize.Height - 60
     $btnGenerate.Width = 120
     $btnGenerate.Height = 35
     $btnGenerate.Font = $FontNormal
@@ -558,10 +554,8 @@ function Show-MainConfigurationGUI {
     $btnCancel.Font = $FontNormal
     $Form.Controls.Add($btnCancel)
 
-    # Store results in a PSCustomObject
     $script:FormResult = $null
 
-    # Event handlers for Generate/Cancel
     $btnGenerate.Add_Click({
         # --- Validation Logic ---
         $errors = @()
@@ -585,7 +579,6 @@ function Show-MainConfigurationGUI {
             if ([string]::IsNullOrWhiteSpace($txtIconPath.Text)) { $errors += "Shortcut Icon Path is required." }
             elseif (-not (Test-Path $txtIconPath.Text -PathType Leaf)) { $errors += "Shortcut Icon file does not exist." }
             elseif ((Get-Item $txtIconPath.Text).Extension -ne ".ico") {
-                # Allow DLL/EXE for icon, but warn
                 if ($txtIconPath.Text -notmatch '\.(ico)$') {
                     $errors += "Shortcut Icon must be a .ico file (or specify icon index, e.g., 'C:\path\to\file.ico')."
                 }
@@ -598,7 +591,7 @@ function Show-MainConfigurationGUI {
 
         if ($errors.Count -gt 0) {
             [System.Windows.Forms.MessageBox]::Show(($errors | Out-String), "Validation Error", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Warning)
-            return # Do not close form
+            return
         }
 
         # Collect all inputs into a PSCustomObject
@@ -607,28 +600,21 @@ function Show-MainConfigurationGUI {
             ShortcutVersion     = $txtShortcutVersion.Text.Trim()
             OutputFolder        = $txtOutputFolder.Text.Trim()
             ActionType          = if ($rbCreateShortcut.Checked) { "CreateShortCut" } else { "CopyFileFolder" }
-            # Shortcut specific properties
             ShortcutTargetType = if ($rbCreateShortcut.Checked) {
                                      if ($rbTargetURL.Checked) { "URL" }
                                      elseif ($rbTargetFilePath.Checked) { "FilePath" }
                                      elseif ($rbTargetMsApp.Checked) { "MsApp" }
-                                     else { $null } # Should not happen with validation
+                                     else { $null }
                                    } else { $null }
             ShortcutTarget      = if ($rbCreateShortcut.Checked) { $txtTargetValue.Text.Trim() } else { $null }
             ShortcutIcon        = if ($rbCreateShortcut.Checked) { $txtIconPath.Text.Trim() } else { $null }
-            ShortcutLocation    = if ($rbCreateShortcut.Checked) {
-                                     if ($rbLocDesktop.Checked) { "Desktop" }
-                                     elseif ($rbLocTaskbar.Checked) { "Taskbar" }
-                                     else { $null } # Should not happen
-                                   } else { $null }
-            # Copy File/Folder specific property
             CopySourcePath      = if ($rbCopyFileFolder.Checked) { $txtCopySourcePath.Text.Trim() } else { $null }
         }
         $Form.Close()
     })
 
     $btnCancel.Add_Click({
-        $script:FormResult = $null # Indicate cancellation
+        $script:FormResult = $null
         $Form.Close()
     })
     #endregion
@@ -641,7 +627,7 @@ function Show-MainConfigurationGUI {
 #region Main Script Logic Execution
 
 # Define common paths (LogFile needs to be defined early for Write-Log to work)
-$WorkingDir = Join-Path -Path $env:TEMP -ChildPath "IntuneWinPackage\TempApp" # Placeholder name for initial log setup
+$WorkingDir = Join-Path -Path $env:TEMP -ChildPath "IntuneWinPackage\TempApp"
 $Script:LogFile = Join-Path -Path $WorkingDir -ChildPath "PackagingLog.txt"
 
 # Create a temporary working directory for initial logging
@@ -651,7 +637,6 @@ try {
     Show-ErrorAndExit -Message "Failed to create initial working directory: $WorkingDir. Error: $($_.Exception.Message)" `
                       -LogMessage "Failed to create initial working directory: $WorkingDir. Error: $($_.Exception.Message)"
 }
-
 
 Write-Log -Message "Script started. Initial log file: $Script:LogFile" -LogFile $Script:LogFile
 
@@ -666,7 +651,8 @@ if ($UserInput -eq $null) {
 $ShortcutName = $UserInput.ShortcutName
 $ShortcutVersion =$UserInput.ShortcutVersion
 $WorkingDir = Join-Path -Path $env:TEMP -ChildPath "IntuneWinPackage\$ShortcutName"
-$Script:LogFile = Join-Path -Path $WorkingDir -ChildPath "PackagingLog.txt" # Update log file path
+$OutputFolder = $UserInput.OutputFolder
+$Script:LogFile = Join-Path -Path $WorkingDir -ChildPath "PackagingLog.txt"
 
 # Recreate working directory (or ensure it exists) with the correct app name
 try {
@@ -682,16 +668,14 @@ Write-Log -Message "User provided Output Folder: $($UserInput.OutputFolder)" -Lo
 Write-Log -Message "User chose Action Type: $($UserInput.ActionType)" -LogFile $Script:LogFile
 
 # Check IntuneWinAppUtil for packaging
-$IntuneWinAppUtilPath = ".\IntuneWinAppUtil.exe" #IntuneWinAppUtil need to be next to the script file
+$IntuneWinAppUtilPath = ".\IntuneWinAppUtil.exe"
 $IntuneWinFile = Join-Path -Path $UserInput.OutputFolder -ChildPath "Install_$ShortcutName.intunewin"
 
-if (-not (Test-Path "$PSScriptRoot\$IntuneWinAppUtilPath")) { # Check using PSScriptRoot
+if (-not (Test-Path "$PSScriptRoot\$IntuneWinAppUtilPath")) {
     Show-ErrorAndExit -Message "IntuneWinAppUtil.exe not found at '$PSScriptRoot\$IntuneWinAppUtilPath'. Please place it in the script's directory."`
                       -LogMessage "IntuneWinAppUtil.exe not found. Exiting script." -LogFile $Script:LogFile
 } elseif (Test-Path $IntuneWinFile) {
-    # Pass a generic name for the prompt (but why)
     if (-not (DeleteFileWithConfirmation -FilePath $IntuneWinFile -LogFile $Script:LogFile -FileNameForPrompt "$ShortcutName.intunewin")) {
-        # Script would have exited if user chose No, so this path means deletion failed
         Show-ErrorAndExit -Message "Failed to delete existing .intunewin file. Exiting." `
                           -LogMessage "Failed to delete existing .intunewin file. Exiting." -LogFile $Script:LogFile
     }
@@ -701,9 +685,6 @@ if ($UserInput.ActionType -eq "CreateShortCut") {
     Write-Log -Message "Shortcut Target Type: $($UserInput.ShortcutTargetType)" -LogFile $Script:LogFile
     Write-Log -Message "Shortcut Target: $($UserInput.ShortcutTarget)" -LogFile $Script:LogFile
     Write-Log -Message "Shortcut Icon Path: $($UserInput.ShortcutIcon)" -LogFile $Script:LogFile
-    Write-Log -Message "Shortcut Location: $($UserInput.ShortcutLocation)" -LogFile $Script:LogFile
-    
-
 } else { # CopyFileFolder
     Write-Log -Message "Copy Source Path: $($UserInput.CopySourcePath)" -LogFile $Script:LogFile
 }
@@ -715,16 +696,12 @@ $UninstallScriptPath = Join-Path -Path $WorkingDir -ChildPath "Uninstall_$Shortc
 $DetectionScriptPath = Join-Path -Path $WorkingDir -ChildPath "Detection_$ShortcutName.ps1"
 $InstructionsFilePath = Join-Path -Path $UserInput.OutputFolder -ChildPath "IntuneInstructions_$ShortcutName.txt"
 $ShortcutVersionInstallPath = Join-Path -Path $WorkingDir -ChildPath "$ShortcutVersion.ini"
-$PinToTaskbarScriptPath = Join-Path -Path $WorkingDir -ChildPath "PinTaskbar_$ShortcutName.ps1"
-$UnpinToTaskbarScriptPath = Join-Path -Path $WorkingDir -ChildPath "UnpinTaskbar_$ShortcutName.ps1"
 
 # Generate common paths for installation scripts
 $PublicDesktopFolder = "C:\Users\Public\Desktop"
 $ShortcutIconPath = "C:\ProgramData\ShortcutsIcons"
 $ShortcutVersionPath = "C:\ProgramData\ShortcutsVersion\$ShortcutName"
-$CurrentUserDesktop = "$env:USERPROFILE\Desktop" # For per-user desktop
 $CopyFile = $UserInput.CopySourcePath # Use value from GUI
-$CurrentUserTaskbarPin = "$env:APPDATA\Microsoft\Internet Explorer\Quick Launch\User Pinned\TaskBar" # Not a direct path, requires COM for pinning
 
 # Create Version file for Intune
 @"
@@ -748,7 +725,7 @@ Write-Log -Message "Created Instructions file: $InstructionsFilePath" -LogFile $
 
 #Process the user's choice
 
-if ($UserInput.ActionType -eq "CopyFileFolder") {  #Copied folder will appear on the advised location only
+if ($UserInput.ActionType -eq "CopyFileFolder") {
 
     # Copy the selected file/folder to the working directory
     try {
@@ -808,12 +785,10 @@ if ($UserInput.ActionType -eq "CopyFileFolder") {  #Copied folder will appear on
     Write-Log -Message "Created detection script: $DetectionScriptPath" -LogFile $Script:LogFile
 
 }elseif ($UserInput.ActionType -eq "CreateShortCut") {
-    $ShortcutLocation = $UserInput.ShortcutLocation # Retrieve from UserInput object
-
         $ShortcutTargetType = $UserInput.ShortcutTargetType
         $ShortcutTarget = $UserInput.ShortcutTarget
         $ShortcutIcon = $UserInput.ShortcutIcon
-        
+
         # Generate shortcut (.lnk) file in working directory
         $ShortcutPath = Join-Path -Path $WorkingDir -ChildPath "$ShortcutName.lnk"
         try {
@@ -821,11 +796,11 @@ if ($UserInput.ActionType -eq "CopyFileFolder") {  #Copied folder will appear on
             $Shortcut = $WScriptShell.CreateShortcut($ShortcutPath)
             if ($ShortcutTargetType.ToLower() -eq 'msapp') {
                 $Shortcut.TargetPath = "%windir%\explorer.exe"
-                $Shortcut.Arguments = $ShortcutTarget
+                $Shortcut.Arguments = "shell:AppsFolder\$ShortcutTarget"
             } else {
                 $Shortcut.TargetPath = $ShortcutTarget
             }
-            $Shortcut.IconLocation = "%ALLUSERSPROFILE%\ShortcutsIcons\$ShortcutName.ico" # Use %ALLUSERSPROFILE% for icon path
+            $Shortcut.IconLocation = "%ALLUSERSPROFILE%\ShortcutsIcons\$ShortcutName.ico"
             $Shortcut.Save()
             Write-Log -Message "Created shortcut: $ShortcutPath" -LogFile $Script:LogFile
         }
@@ -853,7 +828,7 @@ if ($UserInput.ActionType -eq "CopyFileFolder") {  #Copied folder will appear on
         if (-not (Test-Path "$ShortcutIconPath")){New-Item -ItemType Directory -Path "$ShortcutIconPath" -Force | Out-Null}
         Copy-Item -Path ".\$ShortcutName.ico" -Destination "$ShortcutIconPath" -Recurse -Force -ErrorAction Stop
         if (-not (Test-Path "$ShortcutVersionPath")){New-Item -ItemType Directory -Path "$ShortcutVersionPath" -Force | Out-Null}
-        Copy-Item -Path ".\$ShortcutVersion.ini" -Destination "$ShortcutVersionPath" -Recurse -Force -ErrorAction Stop
+        Copy-Item -Path ".\$ShortcutVersion.ini" -Destination "$ShortcutVersionPath" -Recurse -Force | Out-Null
 "@ | Set-Content -Path $InstallScriptPath
         Write-Log -Message "Created install script: $InstallScriptPath" -LogFile $Script:LogFile
 
@@ -861,8 +836,13 @@ if ($UserInput.ActionType -eq "CopyFileFolder") {  #Copied folder will appear on
         @"
         # Uninstall_$ShortcutName.ps1
         # Remove shortcut from Public Desktop folder
-        Remove-Item -Path "$PublicDesktopFolder\$ShortcutName.lnk" -Force
-        Remove-Item -Path "$ShortcutVersionPath\$ShortcutVersion.ini" -Force
+        Remove-Item -Path "$PublicDesktopFolder\$ShortcutName.lnk" -Force -ErrorAction SilentlyContinue
+
+        # Remove icon from centralized icon path
+        Remove-Item -Path "$ShortcutIconPath\$ShortcutName.ico" -Force -ErrorAction SilentlyContinue
+
+        # Remove version file
+        Remove-Item -Path "$ShortcutVersionPath\$ShortcutVersion.ini" -Force -ErrorAction SilentlyContinue
 "@ | Set-Content -Path $UninstallScriptPath
         Write-Log -Message "Created uninstall script: $UninstallScriptPath" -LogFile $Script:LogFile
 
@@ -883,6 +863,7 @@ if ($UserInput.ActionType -eq "CopyFileFolder") {  #Copied folder will appear on
 }
 # End if ($UserInput.ActionType -eq "CreateShortCut")
 
+Close-ProgressWindow
 Show-ProgressWindow -Title "Packaging Win32 App..." -Message "Creating .intunewin file, please wait. This may take a moment."
 Write-Log -Message "Executing IntuneWinAppUtil.exe" -LogFile $Script:LogFile
 
@@ -892,21 +873,24 @@ Write-Log -Message "Executing: $IntuneWinAppUtilPath $Arguments" -LogFile $Scrip
 $Process = Start-Process -FilePath $IntuneWinAppUtilPath -ArgumentList $Arguments -Wait -PassThru -WindowStyle Hidden
 Write-Log -Message "Process exit code: $($Process.ExitCode)" -LogFile $Script:LogFile
 
-# Handle process exit codes
-if ($Process.ExitCode -eq 0) {
 
+# Handle process exit codes
+if ($exitCode -eq 0) {
     Write-Log -Message "Packaging completed successfully! .intunewin file is located at $OutputFolder" -LogFile $LogFile
+   
 } else {
-    Write-Log -Message "Packaging failed with exit code $($Process.ExitCode)" -LogFile $Script:LogFile
-}
+    # Corrected: Separate Write-Log and MessageBox::Show calls
+    Write-Log -Message "Packaging failed with exit code $exitCode. Check the log file for details: $($Script:LogFile)" -LogFile $Script:LogFile
+    }
+
+# Copy Detection Script to Output Folder for easy access
+Copy-Item -Path $DetectionScriptPath -Destination $OutputFolder -Recurse -Force -ErrorAction Stop
+Write-Log -Message "Copied Detection script to output folder: $OutputFolder" -LogFile $Script:LogFile
 
 # Clean up temporary working directory after packaging
-#Remove-Item -Path $WorkingDir -Recurse -Force
-#Write-Log -Message "Cleaned up working directory: $WorkingDir" -LogFile $LogFile
+Remove-Item -Path $WorkingDir -Recurse -Force -ErrorAction SilentlyContinue
+Write-Log -Message "Cleaned up working directory: $WorkingDir" -LogFile $LogFile
 
-#Write-Log -Message "Packaging process completed successfully!" -LogFile $LogFile
-
-# Final cleanup of the output log from IntuneWinAppUtil, if it exists
-#Remove-Item -Path $IntuneUtilOutputLog -ErrorAction SilentlyContinue
+Close-ProgressWindow
 
 #endregion
